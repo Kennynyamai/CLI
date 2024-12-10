@@ -1,0 +1,3 @@
+*.txt
+temp/
+!temp/keep.log
