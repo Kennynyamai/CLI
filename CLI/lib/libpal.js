@@ -194,20 +194,23 @@ export function main() {
       if (name) {
         try {
           branchCreate(repo, name);
-          console.log(`Branch ${name} created.`);
+          console.log(chalk.green(`✔️ Branch '${name}' created successfully.`));
         } catch (err) {
-          console.error(`Error creating branch: ${err.message}`);
+          console.error(chalk.red(`\n[ERROR] Failed to create branch '${name}': ${err.message}\n`));
         }
       } else {
         const branches = branchList(repo);
         const activeBranch = branchGetActive(repo);
 
+        console.log(chalk.cyan("\n📜 Available branches:\n"));
         branches.forEach((branch) => {
           const prefix = branch === activeBranch ? "*" : " ";
-          console.log(`${prefix} ${branch}`);
+          console.log(`  ${prefix} ${branch}`);
         });
+        console.log("");
       }
     });
+
 
   program
     .command("checkout <name> [path]")
@@ -221,10 +224,10 @@ export function main() {
         // Check if the name corresponds to a branch
         if (fs.existsSync(branchPath)) {
           fs.writeFileSync(repo_File(repo, "HEAD"), `ref: refs/heads/${name}\n`);
-          console.log(`Switched to branch '${name}'`);
+          console.log(chalk.green(`✔️ Switched to branch '${name}' successfully.`));
         } else {
           // Assume the name is a commit and checkout into the directory
-          console.log(`Looking for object: ${name}`);
+          console.log(chalk.cyan(`🔍 Looking for commit: ${name}`));
           const sha = objectFind(repo, name);
 
           if (!sha) {
@@ -232,13 +235,12 @@ export function main() {
           }
 
           cmdCheckout(sha, dir);
-          console.log(`Checked out commit ${sha}`);
+          console.log(chalk.green(`✔️ Checked out commit '${sha.slice(0, 8)}' into '${dir}'.`));
         }
       } catch (err) {
-        console.error(`Error: ${err.message}`);
+        console.error(chalk.red(`[ERROR] ${err.message}`));
       }
     });
-
 
 
   // Add the `merge` command
@@ -251,51 +253,6 @@ export function main() {
 
 
 
-  program
-    .command("test-merge")
-    .description("Test merge functionality")
-    .action(() => {
-      try {
-        console.log("Testing merge functionality...");
-
-        const repo = repoFind();
-
-        // Test 1: findCommonAncestor
-        console.log("\nTest: findCommonAncestor");
-        const commitA = "ed113cb3c2d88803b8ee12ab6c367ee7801f7a36"; // Initial commit SHA
-        const commitB = "f3f65a70f7e016c280e8aa8e7e2fa97b3eb52b7a"; // Commit on feature2 SHA
-        const ancestor = findCommonAncestor(repo, commitA, commitB);
-        console.log(`Common ancestor: ${ancestor}`);
-
-        // Test 2: mergeTrees
-        console.log("\nTest: mergeTrees");
-        const baseTree = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"; // Root tree SHA for both commits
-        const currentTree = "c4dc07bf2864b1ba602933c3a8a2bd1546d64284"; // Intermediate tree SHA
-        const targetTree = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"; // Target tree SHA for commit on feature2
-        const mergedTree = mergeTrees(repo, baseTree, currentTree, targetTree);
-        console.log(`Merged tree SHA: ${mergedTree}`);
-
-        // Test 3: myersDiff
-        // Test 3: myersDiff
-        // Test 3: myersDiff
-        console.log("\nTest: myersDiff");
-        let baseContent = "line1\nline2\nline3"; // Allow reassignment with 'let'
-        let targetContent = "line1\nlineX\nline3"; // Allow reassignment with 'let'
-        try {
-          const diff = myersDiff(baseContent, targetContent);
-          console.log("Diff result:", diff);
-        } catch (error) {
-          console.error(`Error in myersDiff test: ${error.message}`);
-        }
-
-
-
-
-        console.log("\nAll tests completed successfully.");
-      } catch (error) {
-        console.error(`Error during testing: ${error.message}`);
-      }
-    });
 
 
   program

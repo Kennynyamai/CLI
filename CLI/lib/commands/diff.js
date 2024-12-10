@@ -1,5 +1,7 @@
 import { repoFind } from "../repository.js";
 import { refResolve } from "../references.js";
+import chalk from 'chalk';
+
 
 export function myersDiff(base, target) {
   const baseLines = base.split("\n");
@@ -76,26 +78,26 @@ function compareTrees(tree1, tree2) {
 
 function displayDiff(diff) {
   if (diff.added.length) {
-    console.log("Added files:");
-    diff.added.forEach((file) => console.log(`  + ${file}`));
+    console.log(chalk.green.bold("\n📂 Added files:"));
+    diff.added.forEach((file) => console.log(`  ${chalk.green("+")} ${file}`));
   }
 
   if (diff.deleted.length) {
-    console.log("Deleted files:");
-    diff.deleted.forEach((file) => console.log(`  - ${file}`));
+    console.log(chalk.red.bold("\n🗑️ Deleted files:"));
+    diff.deleted.forEach((file) => console.log(`  ${chalk.red("-")} ${file}`));
   }
 
   if (diff.modified.length) {
-    console.log("Modified files:");
-    diff.modified.forEach((file) => console.log(`  * ${file}`));
+    console.log(chalk.yellow.bold("\n✏️ Modified files:"));
+    diff.modified.forEach((file) => console.log(`  ${chalk.yellow("*")} ${file}`));
   }
 
   if (diff.conflicts.length) {
-    console.log("Conflicting files:");
+    console.log(chalk.magenta.bold("\n⚠️ Conflicting files:"));
     diff.conflicts.forEach((file) => {
-      console.log(`  ! ${file}`);
+      console.log(`  ${chalk.magenta("!")} ${file}`);
       const { sha1, sha2 } = diff.conflictDetails[file];
-      console.log(`    Conflict between SHA-1s: ${sha1} and ${sha2}`);
+      console.log(`    ${chalk.gray("Conflict between SHA-1s:")} ${chalk.red(sha1)} ${chalk.gray("and")} ${chalk.red(sha2)}`);
     });
   }
 
@@ -105,9 +107,12 @@ function displayDiff(diff) {
     !diff.modified.length &&
     !diff.conflicts.length
   ) {
-    console.log("No differences found.");
+    console.log(chalk.blue.bold("\n✅ No differences found."));
   }
+
+  console.log(""); // Add a blank line for clean output
 }
+
 
 export async function cmdDiff(branch1, branch2) {
   try {

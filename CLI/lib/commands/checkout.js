@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import { repoFind } from "../repository.js";
 import { objectRead, objectFind } from "../objects.js";
+import chalk from 'chalk';
 
 // Recursive function to checkout a tree into a directory
 function treeCheckout(repo, tree, destPath) {
@@ -23,26 +24,36 @@ function treeCheckout(repo, tree, destPath) {
 export function cmdCheckout(commit, dir) {
   const repo = repoFind();
 
-  let obj = objectRead(repo, objectFind(repo, commit));
+  try {
+    console.log(chalk.cyan(`🔍 Resolving commit: ${commit}`));
+    let obj = objectRead(repo, objectFind(repo, commit));
 
-  // If the object is a commit, use its tree
-  if (obj.fmt === "commit") {
-    obj = objectRead(repo, obj.kvlm.get("tree"));
-  }
-
-  // Verify that the directory is empty
-  const fullPath = path.resolve(dir);
-
-  if (fs.existsSync(fullPath)) {
-    if (!fs.statSync(fullPath).isDirectory()) {
-      throw new Error(`Not a directory: ${dir}`);
+    // If the object is a commit, use its tree
+    if (obj.fmt === "commit") {
+      console.log(chalk.cyan(`✔️ Commit resolved. Using tree object for checkout.`));
+      obj = objectRead(repo, obj.kvlm.get("tree"));
     }
-    if (fs.readdirSync(fullPath).length > 0) {
-      throw new Error(`Directory not empty: ${dir}`);
-    }
-  } else {
-    fs.mkdirSync(fullPath, { recursive: true });
-  }
 
-  treeCheckout(repo, obj, fullPath);
+    // Verify that the directory is empty
+    const fullPath = path.resolve(dir);
+
+    if (fs.existsSync(fullPath)) {
+      if (!fs.statSync(fullPath).isDirectory()) {
+        throw new Error(`Not a directory: ${dir}`);
+      }
+      if (fs.readdirSync(fullPath).length > 0) {
+        throw new Error(`Directory is not empty: '${dir}'.`);
+      }
+    } else {
+      console.log(chalk.cyan(`📂 Directory '${dir}' does not exist. Creating it...`));
+      fs.mkdirSync(fullPath, { recursive: true });
+    }
+
+    console.log(chalk.cyan(`📂 Checking out tree into '${dir}'...`));
+    treeCheckout(repo, obj, fullPath);
+    console.log(chalk.green(`✔️  Checkout completed successfully.`));
+  } catch (err) {
+    console.error(chalk.red(`[ERROR] ${err.message}`));
+    throw err;
+  }
 }

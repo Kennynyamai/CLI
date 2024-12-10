@@ -5,6 +5,7 @@ import { palignoreRead, checkIgnore } from "../commands/checkIgnore.js";
 import { objectHash } from "./hashObject.js";
 import path from "path";
 import fs from "fs";
+import chalk from 'chalk';
 
 // Get active branch or detached HEAD
 function branchGetActive(repo) {
@@ -40,36 +41,49 @@ export function treeToDict(repo, ref, prefix = "") {
 
 // Compare HEAD and index
 function cmdStatusHeadIndex(repo, index) {
-  console.log("Changes to be committed:");
   const head = treeToDict(repo, "HEAD");
+  let hasChanges = false;
+
+  console.log(chalk.cyan("\nChanges to be committed:"));
 
   for (const entry of index.entries) {
     if (entry.name in head) {
       if (head[entry.name] !== entry.sha) {
-        console.log(`  modified:   ${entry.name}`);
+        console.log(`  ${chalk.yellow("modified:")}   ${entry.name}`);
+        hasChanges = true;
       }
       delete head[entry.name];
     } else {
-      console.log(`  added:      ${entry.name}`);
+      console.log(`  ${chalk.green("added:")}      ${entry.name}`);
+      hasChanges = true;
     }
   }
 
   for (const name in head) {
-    console.log(`  deleted:    ${name}`);
+    console.log(`  ${chalk.red("deleted:")}    ${name}`);
+    hasChanges = true;
+  }
+
+  if (!hasChanges) {
+    console.log(`  ${chalk.gray("No changes staged for commit.")}`);
   }
 }
 
+
 // Compare index and worktree
 function cmdStatusIndexWorktree(repo, index) {
-  console.log("\nChanges not staged for commit:");
   const ignoreRules = palignoreRead(repo);
   const worktreeFiles = fs.readdirSync(repo.worktree).filter((f) => !f.startsWith(repo.gitdir));
+  let hasChanges = false;
+
+  console.log(chalk.cyan("\nChanges not staged for commit:"));
 
   for (const entry of index.entries) {
     const fullPath = path.join(repo.worktree, entry.name);
 
     if (!fs.existsSync(fullPath)) {
-      console.log(`  deleted:    ${entry.name}`);
+      console.log(`  ${chalk.red("deleted:")}    ${entry.name}`);
+      hasChanges = true;
     } else {
       const stat = fs.statSync(fullPath);
       const ctimeNs = entry.ctime[0] * 1e9 + entry.ctime[1];
@@ -80,7 +94,8 @@ function cmdStatusIndexWorktree(repo, index) {
         const newSha = objectHash(fileData, "blob", repo);
 
         if (entry.sha !== newSha) {
-          console.log(`  modified:   ${entry.name}`);
+          console.log(`  ${chalk.yellow("modified:")}   ${entry.name}`);
+          hasChanges = true;
         }
       }
     }
@@ -90,18 +105,24 @@ function cmdStatusIndexWorktree(repo, index) {
     }
   }
 
-  console.log("\nUntracked files:");
+  if (!hasChanges) {
+    console.log(`  ${chalk.gray("No changes not staged for commit.")}`);
+  }
+
+  console.log(chalk.cyan("\nUntracked files:"));
+
   for (const file of worktreeFiles) {
     if (!checkIgnore(ignoreRules, file)) {
-      console.log(`  ${file}`);
+      console.log(`  ${chalk.green(file)}`);
     }
   }
 }
+
 // Status: Display active branch or detached HEAD
 function cmdStatusBranch(repo) {
   const headPath = path.join(repo.gitdir, "HEAD");
   if (!fs.existsSync(headPath)) {
-    console.log("Error: HEAD reference does not exist.");
+    console.log(chalk.red("[ERROR] HEAD reference does not exist."));
     return;
   }
 
@@ -109,12 +130,13 @@ function cmdStatusBranch(repo) {
 
   if (headContent.startsWith("ref: refs/heads/")) {
     const branch = headContent.slice(16);
-    console.log(`On branch ${branch}.`);
+    console.log(chalk.green(`\nOn branch ${chalk.bold(branch)}.`));
   } else {
     const headSha = objectFind(repo, "HEAD");
-    console.log(`HEAD detached at ${headSha}.`);
+    console.log(chalk.yellow(`\nHEAD detached at ${headSha.slice(0, 8)}.`));
   }
 }
+
 
 
 // Main status command
@@ -126,11 +148,12 @@ export function cmdStatus() {
 
   const index = indexRead(repo);
 
-  // Call cmdStatusBranch
+  // Display branch or detached HEAD
   cmdStatusBranch(repo);
 
-  // Call other status functions
+  // Compare HEAD and index
   cmdStatusHeadIndex(repo, index);
-  console.log();
+
+  // Compare index and worktree
   cmdStatusIndexWorktree(repo, index);
 }

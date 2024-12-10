@@ -1,7 +1,7 @@
 export function kvlmParse(raw, start = 0, dct = new Map()) {
   if (!dct.has(null)) dct.set(null, Buffer.alloc(0));
 
-  console.log("Parsing KVLM raw data:", raw.toString("utf8"));
+ // console.log("Parsing KVLM raw data:", raw.toString("utf8"));
 
   const spc = raw.indexOf(0x20, start);
   const nl = raw.indexOf(0x0a, start);
@@ -9,7 +9,7 @@ export function kvlmParse(raw, start = 0, dct = new Map()) {
   if (spc === -1 || nl < spc) {
     if (nl === start) {
       dct.set(null, raw.slice(start + 1)); // Remaining message
-      console.log("Message parsed:", dct.get(null).toString("utf8"));
+   //   console.log("Message parsed:", dct.get(null).toString("utf8"));
       return dct;
     }
     throw new Error("Malformed commit object");
@@ -28,7 +28,7 @@ export function kvlmParse(raw, start = 0, dct = new Map()) {
   }
 
   const value = raw.slice(spc + 1, end).toString("utf8").replace(/\n /g, "\n");
-  console.log(`Parsed key: ${key}, value: ${value}`);
+//  console.log(`Parsed key: ${key}, value: ${value}`);
 
   if (dct.has(key)) {
     const existing = dct.get(key);

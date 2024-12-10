@@ -11,7 +11,7 @@ export class GitTreeLeaf {
 
 // Helper: Parse a single tree entry
 function treeParseOne(raw, start = 0) {
-  console.log(`[treeParseOne] Parsing entry at position ${start}...`);
+ // console.log(`[treeParseOne] Parsing entry at position ${start}...`);
 
   const spaceIndex = raw.indexOf(0x20, start);
   if (spaceIndex - start !== 5 && spaceIndex - start !== 6) {
@@ -22,15 +22,15 @@ function treeParseOne(raw, start = 0) {
   if (mode.length === 5) {
     mode = Buffer.concat([Buffer.from(" "), mode]);
   }
-  console.log(`[treeParseOne] Parsed mode: ${mode.toString()}`);
+ // console.log(`[treeParseOne] Parsed mode: ${mode.toString()}`);
 
   const nullIndex = raw.indexOf(0x00, spaceIndex);
   const path = raw.slice(spaceIndex + 1, nullIndex).toString("utf8");
-  console.log(`[treeParseOne] Parsed path: ${path}`);
+ // console.log(`[treeParseOne] Parsed path: ${path}`);
 
   const rawSha = raw.slice(nullIndex + 1, nullIndex + 21);
   const sha = Buffer.from(rawSha).toString("hex");
-  console.log(`[treeParseOne] Parsed SHA: ${sha}`);
+  //console.log(`[treeParseOne] Parsed SHA: ${sha}`);
 
   return [nullIndex + 21, new GitTreeLeaf(mode.toString(), path, sha)];
 }
@@ -38,19 +38,19 @@ function treeParseOne(raw, start = 0) {
 
 // Helper: Parse a full tree
 function treeParse(raw) {
-  console.log("[treeParse] Starting to parse raw tree data...");
+//  console.log("[treeParse] Starting to parse raw tree data...");
   let pos = 0;
   const items = [];
 
   while (pos < raw.length) {
-    console.log(`[treeParse] Parsing at position ${pos}...`);
+   // console.log(`[treeParse] Parsing at position ${pos}...`);
     const [newPos, data] = treeParseOne(raw, pos);
-    console.log(`[treeParse] Parsed entry: Mode=${data.mode}, Path=${data.path}, SHA=${data.sha}`);
+   // console.log(`[treeParse] Parsed entry: Mode=${data.mode}, Path=${data.path}, SHA=${data.sha}`);
     pos = newPos;
     items.push(data);
   }
 
-  console.log(`[treeParse] Completed parsing. Total items: ${items.length}`);
+ // console.log(`[treeParse] Completed parsing. Total items: ${items.length}`);
   return items;
 }
 

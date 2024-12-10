@@ -9,18 +9,14 @@ import { GitTree } from "../objects.js";
 import chalk from "chalk";
 
 export function mergeTrees(repo, baseTree, currentTree, targetTree) {
-    console.log("[mergeTrees] Entering mergeTrees...");
-    console.log("[mergeTrees] Base Tree SHA:", baseTree || "Empty Tree");
-    console.log("[mergeTrees] Current Tree SHA:", currentTree || "Empty Tree");
-    console.log("[mergeTrees] Target Tree SHA:", targetTree || "Empty Tree");
+    console.log(chalk.cyanBright("\n[INFO] Starting tree merge..."));
+    console.log(chalk.cyanBright(`[INFO] Base Tree: ${baseTree || "Empty Tree"}`));
+    console.log(chalk.cyanBright(`[INFO] Current Tree: ${currentTree || "Empty Tree"}`));
+    console.log(chalk.cyanBright(`[INFO] Target Tree: ${targetTree || "Empty Tree"}`));
 
     const base = baseTree ? treeParse(objectRead(repo, baseTree).serialize()) : [];
     const current = currentTree ? treeParse(objectRead(repo, currentTree).serialize()) : [];
     const target = targetTree ? treeParse(objectRead(repo, targetTree).serialize()) : [];
-
-    console.log("[mergeTrees] Parsed Base Tree:", base);
-    console.log("[mergeTrees] Parsed Current Tree:", current);
-    console.log("[mergeTrees] Parsed Target Tree:", target);
 
     const mergedTree = [];
     const conflicts = [];
@@ -48,7 +44,10 @@ export function mergeTrees(repo, baseTree, currentTree, targetTree) {
     }
 
     if (conflicts.length > 0) {
-        console.warn("[mergeTrees] Merge conflicts detected:", conflicts);
+        console.warn(chalk.yellow("\n⚠️ Merge conflicts detected:"));
+        conflicts.forEach(conflict => {
+            console.warn(`  - ${chalk.magentaBright(conflict.path)}`);
+        });
         return { mergedTree: null, conflicts };
     }
 
@@ -56,72 +55,50 @@ export function mergeTrees(repo, baseTree, currentTree, targetTree) {
     treeObject.items = mergedTree.filter(Boolean);
 
     const treeSHA = objectWrite(treeObject, repo);
-    console.log("[mergeTrees] Merged Tree SHA:", treeSHA);
+    console.log(chalk.greenBright(`\n[INFO] Merged tree created successfully with SHA: ${treeSHA}`));
+
     return { mergedTree: treeSHA, conflicts: [] };
 }
 
+
 export function cmdMerge(targetBranch) {
-    console.log("[cmdMerge] Entering cmdMerge...");
+    console.log(chalk.cyanBright(`\n🔄 Starting merge operation...`));
+
     const repo = repoFind();
     const currentBranch = branchGetActive(repo);
 
-    console.log("[cmdMerge] Current Branch:", currentBranch);
-    console.log("[cmdMerge] Target Branch:", targetBranch);
-
     if (!currentBranch) {
-        console.error("[cmdMerge] Error: No active branch found.");
+        console.error(chalk.red("[ERROR] No active branch found. Cannot perform the merge."));
         return;
     }
 
     if (currentBranch === targetBranch) {
-        console.error("[cmdMerge] Error: Cannot merge a branch into itself.");
+        console.error(chalk.red("[ERROR] Cannot merge a branch into itself."));
         return;
     }
 
     try {
-        console.log(`[cmdMerge] Merging branch '${targetBranch}' into '${currentBranch}'...`);
+        console.log(chalk.cyanBright(`[INFO] Merging branch '${chalk.bold(targetBranch)}' into '${chalk.bold(currentBranch)}'...`));
 
         const currentCommit = refResolve(repo, `refs/heads/${currentBranch}`);
         const targetCommit = refResolve(repo, `refs/heads/${targetBranch}`);
 
-        console.log("[cmdMerge] Current Commit SHA:", currentCommit);
-        console.log("[cmdMerge] Target Commit SHA:", targetCommit);
-
         if (!currentCommit || !targetCommit) {
-            console.error(`[cmdMerge] Error: Unable to resolve branches '${currentBranch}' or '${targetBranch}' to commits.`);
+            console.error(chalk.red(`[ERROR] Unable to resolve branches '${currentBranch}' or '${targetBranch}' to commits.`));
             return;
         }
 
         const ancestorCommit = findCommonAncestor(repo, currentCommit, targetCommit);
-        console.log("[cmdMerge] Common Ancestor Commit SHA:", ancestorCommit);
 
-        // Debug logs for objectFind
-        const baseTreeObject = objectFind(repo, ancestorCommit, "tree");
-        const currentTreeObject = objectFind(repo, currentCommit, "tree");
-        const targetTreeObject = objectFind(repo, targetCommit, "tree");
-
-        console.log("[cmdMerge] Base Tree Object:", baseTreeObject);
-        console.log("[cmdMerge] Current Tree Object:", currentTreeObject);
-        console.log("[cmdMerge] Target Tree Object:", targetTreeObject);
-
-        // Ensure objectRead works correctly
-        const baseTree = baseTreeObject ? objectRead(repo, baseTreeObject).sha : null;
-        const currentTree = currentTreeObject ? objectRead(repo, currentTreeObject).sha : null;
-        const targetTree = targetTreeObject ? objectRead(repo, targetTreeObject).sha : null;
-
-        console.log("[cmdMerge] Base Tree SHA:", baseTree);
-        console.log("[cmdMerge] Current Tree SHA:", currentTree);
-        console.log("[cmdMerge] Target Tree SHA:", targetTree);
-
-        if (!baseTree || !currentTree || !targetTree) {
-            console.error("[cmdMerge] Error: Unable to resolve tree objects for merge.");
-            return;
-        }
+        console.log(chalk.cyanBright("\n[INFO] Resolving merge trees..."));
+        const baseTree = ancestorCommit ? objectFind(repo, ancestorCommit, "tree") : null;
+        const currentTree = objectFind(repo, currentCommit, "tree");
+        const targetTree = objectFind(repo, targetCommit, "tree");
 
         const { mergedTree, conflicts } = mergeTrees(repo, baseTree, currentTree, targetTree);
 
         if (conflicts.length > 0) {
-            console.warn("[cmdMerge] Merge resulted in conflicts. Resolve conflicts manually and commit.");
+            console.warn(chalk.yellowBright("\n⚠️ Merge resulted in conflicts. Resolve the conflicts manually."));
             return;
         }
 
@@ -130,7 +107,7 @@ export function cmdMerge(targetBranch) {
         const timestamp = new Date().toISOString();
 
         const mergeCommitMessage = `Merge branch '${targetBranch}' into '${currentBranch}'`;
-        console.log("Timestamp for merge commit:", timestamp);
+        console.log(chalk.cyanBright("\n[INFO] Creating merge commit..."));
         const mergeCommitSha = mergeCommitCreate(
             repo,
             mergedTree,
@@ -141,8 +118,12 @@ export function cmdMerge(targetBranch) {
         );
 
         refCreate(repo, `refs/heads/${currentBranch}`, mergeCommitSha);
-        console.log("[cmdMerge] Merge completed successfully. New Commit SHA:", mergeCommitSha);
+        console.log(chalk.greenBright(`\n🎉 Merge completed successfully!`));
+        console.log(`New Commit SHA: ${chalk.blueBright(mergeCommitSha)}`);
+        console.log(chalk.cyanBright("\nYou can view the updated history using `pal log`.\n"));
     } catch (error) {
-        console.error("[cmdMerge] Error during merge:", error);
+        console.error(chalk.red(`[ERROR] Merge operation failed: ${error.message}`));
     }
 }
+
+  

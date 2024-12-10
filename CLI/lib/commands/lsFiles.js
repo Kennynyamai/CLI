@@ -5,7 +5,7 @@ import chalk from "chalk";
 export function cmdLsFiles(verbose = false) {
     try {
         const repo = repoFind();
-        console.log(chalk.bold.blue("[INFO] Found repository:"), repo.gitdir);
+       // console.log(chalk.bold.blue("[INFO] Found repository:"), repo.gitdir);
 
         // Read the index
         const index = indexRead(repo);

@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { ceil } from "mathjs";
+import chalk from 'chalk';
 
 export class GitIndexEntry {
   constructor({ ctime, mtime, dev, ino, modeType, modePerms, uid, gid, fsize, sha, name }) {
@@ -42,12 +43,12 @@ export function indexRead(repo) {
   }
 
   const buffer = fs.readFileSync(indexPath);
-  console.log("Index file size:", buffer.length);
+ // console.log("Index file size:", buffer.length);
 
   const signature = buffer.slice(0, 4).toString();
   const version = buffer.readUInt32BE(4);
   const numEntries = buffer.readUInt32BE(8);
-  console.log("Index file header:", { signature, version, numEntries });
+  //console.log("Index file header:", { signature, version, numEntries });
 
   if (signature !== "DIRC" || version !== 2) {
     throw new Error("Invalid index file");
@@ -67,7 +68,7 @@ export function indexRead(repo) {
     }
   }
 
-  console.log("Parsed entries:", entries.map((e) => e?.name || "undefined"));
+ // console.log("Parsed entries:", entries.map((e) => e?.name || "undefined"));
   return { entries };
 }
 
@@ -118,7 +119,7 @@ function parseIndexEntry(buffer, offset) {
 
 export function indexWrite(repo, index) {
   const indexPath = path.join(repo.gitdir, "index");
-  console.log(`Writing index to: ${indexPath}`);
+  
 
   const file = fs.openSync(indexPath, "w");
 
@@ -133,15 +134,14 @@ export function indexWrite(repo, index) {
 
   for (const entry of index.entries) {
     if (!entry) {
-      console.error("Skipping undefined entry:", entry);
       continue;
     }
 
-    console.log("Writing entry:", entry.name);
+   
 
     const toUInt32 = (value, fieldName) => {
       if (value < 0 || value > 4294967295) {
-        console.warn(`Truncating ${fieldName}: ${value}`);
+        //console.warn(`Truncating ${fieldName}: ${value}`);
         value = value & 0xffffffff;
       }
       return value >>> 0;
@@ -203,5 +203,5 @@ export function indexWrite(repo, index) {
   }
 
   fs.closeSync(file);
-  console.log("Index written successfully.");
+  //console.log(chalk.green("\n✅ Index successfully updated.\n"));
 }

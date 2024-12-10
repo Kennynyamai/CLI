@@ -7,25 +7,21 @@ import path from "path";
 // Get the active branch
 export function branchGetActive(repo) {
   const headPath = repo.repoFile("HEAD");
-  console.log(`HEAD file path: ${headPath}`);
 
   if (!fs.existsSync(headPath)) {
-    console.warn("HEAD file does not exist.");
+    console.warn(chalk.yellow("[WARNING] HEAD file does not exist."));
     return null;
   }
 
   const headContent = fs.readFileSync(headPath, "utf-8").trim();
-  console.log("HEAD file content:", headContent);
 
   if (headContent.startsWith("ref:")) {
-    const branch = headContent.replace("ref: refs/heads/", "").trim();
-    console.log("Active branch resolved:", branch);
-    return branch;
+    return headContent.replace("ref: refs/heads/", "").trim();
   }
 
-  console.warn("HEAD does not reference a branch. Returning null.");
-  return null;
+  return null; // If HEAD does not reference a branch
 }
+
 
 
 // Create a new branch
@@ -33,11 +29,12 @@ export function branchCreate(repo, name, startPoint = "HEAD") {
   const sha = refResolve(repo, startPoint);
 
   if (!sha) {
-    throw new Error(`Invalid start point: ${startPoint}`);
+    throw new Error(`Invalid start point: '${startPoint}' is not a valid commit.`);
   }
 
   refCreate(repo, `heads/${name}`, sha);
 }
+
 
 // List all branches
 export function branchList(repo) {
@@ -63,12 +60,12 @@ export function findCommonAncestor(repo, commitA, commitB) {
   const walk = (sha) => {
       while (sha) {
           if (visited.has(sha)) {
-              console.log(`Common ancestor found: ${sha}`);
+            //  console.log(`Common ancestor found: ${sha}`);
               return sha; // Return immediately when a common ancestor is found
           }
           visited.add(sha);
 
-          console.log(`Visiting commit: ${sha}`);
+          //console.log(`Visiting commit: ${sha}`);
           const commit = objectRead(repo, sha);
 
           sha = commit.kvlm.get("parent")?.toString("utf8") || null; // Move to the parent

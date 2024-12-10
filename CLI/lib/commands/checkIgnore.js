@@ -1,6 +1,7 @@
 import { repoFind } from "../repository.js";
 import { indexRead } from "../index.js";
 import { objectRead } from "../objects.js";
+import chalk from 'chalk';
 import path from "path";
 import fs from "fs";
 import os from "os";
@@ -47,7 +48,7 @@ function palignoreRead(repo) {
     }
   }
 
-  console.log("Loaded scoped rules:", result.scoped);
+ // console.log("Loaded scoped rules:", result.scoped);
 
   return result;
 }
@@ -56,7 +57,7 @@ function palignoreRead(repo) {
 function checkIgnore1(rules, filePath) {
   let result = null;
   for (const [pattern, value] of rules) {
-    console.log(`Testing pattern: ${pattern} against path: ${filePath}`);
+    //console.log(`Testing pattern: ${pattern} against path: ${filePath}`);
     if (minimatch(filePath, pattern)) {
       console.log(`Pattern matched: ${pattern}, value: ${value}`);
       result = value; // Last matching rule determines the result
@@ -68,19 +69,19 @@ function checkIgnore1(rules, filePath) {
 // Match against scoped rules
 function checkIgnoreScoped(rules, filePath) {
   let currentDir = path.dirname(filePath);
-  console.log(`Starting scoped check for: ${filePath}`);
+//  console.log(`Starting scoped check for: ${filePath}`);
   while (currentDir !== path.resolve(currentDir, "..")) {
-    console.log(`Checking directory: ${currentDir}`);
+  //  console.log(`Checking directory: ${currentDir}`);
     if (rules[currentDir]) {
       const result = checkIgnore1(rules[currentDir], filePath);
       if (result !== null) {
-        console.log(`Scoped match found in: ${currentDir}`);
+       // console.log(`Scoped match found in: ${currentDir}`);
         return result;
       }
     }
     currentDir = path.resolve(currentDir, "..");
   }
-  console.log("No scoped match found.");
+ // console.log("No scoped match found.");
   return null;
 }
 

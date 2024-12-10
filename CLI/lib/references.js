@@ -4,7 +4,7 @@ import path from "path";
 // Resolve a reference to its SHA-1 value
 export function refResolve(repo, ref) {
   const refPath = path.join(repo.gitdir, ref);
-  console.log(`Resolving reference: ${ref}, Path: ${refPath}`);
+  //console.log(`Resolving reference: ${ref}, Path: ${refPath}`);
 
   try {
     if (!fs.existsSync(refPath)) {
@@ -19,16 +19,16 @@ export function refResolve(repo, ref) {
     }
 
     const data = fs.readFileSync(refPath, "utf8").trim();
-    console.log(`Reference content: ${data}`);
+    //console.log(`Reference content: ${data}`);
 
     if (data.startsWith("ref: ")) {
       // Indirect reference
       const targetRef = data.slice(5);
-      console.log(`Reference ${ref} points to another ref: ${targetRef}`);
+     // console.log(`Reference ${ref} points to another ref: ${targetRef}`);
       return refResolve(repo, targetRef);
     } else {
       // Direct reference
-      console.log(`Reference ${ref} resolved to SHA: ${data}`);
+    //  console.log(`Reference ${ref} resolved to SHA: ${data}`);
       return data;
     }
   } catch (error) {
