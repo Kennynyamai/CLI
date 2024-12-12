@@ -1,27 +1,16 @@
-import { repoFind } from "../repository.js";
-import { indexRead, indexWrite } from "../index.js";
-import { objectRead, objectFind } from "../objects.js";
+import { repoFind } from "../core/repository.js";
+import { indexRead } from "../core/index.js";
+import { objectRead, objectFind } from "../core/objects.js";
 import { palignoreRead, checkIgnore } from "../commands/checkIgnore.js";
 import { objectHash } from "./hashObject.js";
 import path from "path";
 import fs from "fs";
 import chalk from 'chalk';
 
-// Get active branch or detached HEAD
-function branchGetActive(repo) {
-  const headPath = path.join(repo.gitdir, "HEAD");
-  if (!fs.existsSync(headPath)) {
-    throw new Error("HEAD reference does not exist.");
-  }
-  const headContent = fs.readFileSync(headPath, "utf8").trim();
-  if (headContent.startsWith("ref: refs/heads/")) {
-    return headContent.slice(16);
-  }
-  return false; // Detached HEAD
-}
+
 
 // Convert a tree to a flat dictionary
-export function treeToDict(repo, ref, prefix = "") {
+function treeToDict(repo, ref, prefix = "") {
   const result = {};
   const treeSha = objectFind(repo, ref, "tree");
   const tree = objectRead(repo, treeSha);
@@ -30,18 +19,18 @@ export function treeToDict(repo, ref, prefix = "") {
     const fullPath = path.join(prefix, leaf.path);
     if (leaf.mode.startsWith("04")) {
       // Subtree
-      Object.assign(result, treeToDict(repo, leaf.sha, fullPath));
+      Object.assign(result, treeToDict(repo, leaf.sha, fullPath)); // Recursively process subtrees
     } else {
       result[fullPath] = leaf.sha; // Blob
     }
   }
 
-  return result;
+  return result; //flattened dictionary
 }
 
-// Compare HEAD and index
+// Compare HEAD and index for staged changes
 function cmdStatusHeadIndex(repo, index) {
-  const head = treeToDict(repo, "HEAD");
+  const head = treeToDict(repo, "HEAD"); 
   let hasChanges = false;
 
   console.log(chalk.cyan("\nChanges to be committed:"));
@@ -52,15 +41,15 @@ function cmdStatusHeadIndex(repo, index) {
         console.log(`  ${chalk.yellow("modified:")}   ${entry.name}`);
         hasChanges = true;
       }
-      delete head[entry.name];
+      delete head[entry.name]; // Remove processed file from HEAD dictionary
     } else {
-      console.log(`  ${chalk.green("added:")}      ${entry.name}`);
+      console.log(`  ${chalk.green("added:")}      ${entry.name}`); // New file
       hasChanges = true;
     }
   }
 
   for (const name in head) {
-    console.log(`  ${chalk.red("deleted:")}    ${name}`);
+    console.log(`  ${chalk.red("deleted:")}    ${name}`); // Deleted file
     hasChanges = true;
   }
 
@@ -70,7 +59,7 @@ function cmdStatusHeadIndex(repo, index) {
 }
 
 
-// Compare index and worktree
+// Compare index and working tree for unstaged changes
 function cmdStatusIndexWorktree(repo, index) {
   const ignoreRules = palignoreRead(repo);
   const worktreeFiles = fs.readdirSync(repo.worktree).filter((f) => !f.startsWith(repo.gitdir));
@@ -101,7 +90,7 @@ function cmdStatusIndexWorktree(repo, index) {
     }
 
     if (worktreeFiles.includes(entry.name)) {
-      worktreeFiles.splice(worktreeFiles.indexOf(entry.name), 1);
+      worktreeFiles.splice(worktreeFiles.indexOf(entry.name), 1);  // Remove processed file from worktree
     }
   }
 
@@ -120,7 +109,7 @@ function cmdStatusIndexWorktree(repo, index) {
 
 // Status: Display active branch or detached HEAD
 function cmdStatusBranch(repo) {
-  const headPath = path.join(repo.gitdir, "HEAD");
+  const headPath = path.join(repo.gitdir, "HEAD");  
   if (!fs.existsSync(headPath)) {
     console.log(chalk.red("[ERROR] HEAD reference does not exist."));
     return;
@@ -129,7 +118,7 @@ function cmdStatusBranch(repo) {
   const headContent = fs.readFileSync(headPath, "utf8").trim();
 
   if (headContent.startsWith("ref: refs/heads/")) {
-    const branch = headContent.slice(16);
+    const branch = headContent.slice(16); // Extract branch name
     console.log(chalk.green(`\nOn branch ${chalk.bold(branch)}.`));
   } else {
     const headSha = objectFind(repo, "HEAD");
@@ -140,7 +129,7 @@ function cmdStatusBranch(repo) {
 
 
 // Main status command
-export function cmdStatus() {
+function cmdStatus() {
   const repo = repoFind();
   if (!repo) {
     throw new Error("Not a valid repository.");
@@ -157,3 +146,5 @@ export function cmdStatus() {
   // Compare index and worktree
   cmdStatusIndexWorktree(repo, index);
 }
+
+export { treeToDict, cmdStatus };

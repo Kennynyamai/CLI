@@ -1,20 +1,21 @@
-import fs from "fs";
 import path from "path";
-import { indexRead, indexWrite } from "../index.js";
-import { repoFind } from "../repository.js";
+import { indexRead, indexWrite } from "../core/index.js";
+import { repoFind } from "../core/repository.js";
 import chalk from 'chalk';
 
 // Command bridge for the `rm` command
-export function cmdRm(args) {
+function cmdRm(args) {
   const repo = repoFind();
   rm(repo, args.path);
 }
 
 
-// The main `rm` function
-export function rm(repo, paths, deleteFiles = false, skipMissing = false) {
+// Main function to handle file removal from the index and working tree(depending on the value of deleteFiles)
+function rm(repo, paths, deleteFiles = false, skipMissing = false) {
   const index = indexRead(repo);
   const worktree = repo.worktree + path.sep;
+
+  // Resolve absolute paths and ensure they are inside the repository
   const abspaths = paths.map((p) => {
     const abspath = path.resolve(p);
     if (!abspath.startsWith(worktree)) {
@@ -23,9 +24,10 @@ export function rm(repo, paths, deleteFiles = false, skipMissing = false) {
     return abspath;
   });
 
-  const keptEntries = [];
-  const removedPaths = [];
+  const keptEntries = []; // List of entries to keep in the index
+  const removedPaths = []; // List of successfully removed paths
 
+// Iterate over index entries and check if they match the paths to remove
   for (const entry of index.entries) {
     const fullPath = path.join(repo.worktree, entry.name);
     if (abspaths.includes(fullPath)) {
@@ -40,9 +42,11 @@ export function rm(repo, paths, deleteFiles = false, skipMissing = false) {
     removedPaths.forEach((file) => console.log(`  - ${file}`));
   }
 
+   // Update the index by keeping only non-removed entries
   index.entries = keptEntries;
   indexWrite(repo, index);
 
   console.log(chalk.green("\n✅ Index updated successfully.\n"));
 }
- 
+
+export { cmdRm, rm };

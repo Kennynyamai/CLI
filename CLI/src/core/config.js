@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 
 // Read Git configuration files, focusing only on local `.pal/config`
-export function gitConfigRead(repo) {
+function gitConfigRead(repo) {
   console.log("Reading configuration for repository...");
 
   // Ensure repo is provided
@@ -55,7 +55,7 @@ function parseConfig(content, config) {
 }
 
 // Get user information
-export function gitConfigUserGet(config) {
+function gitConfigUserGet(config) {
   console.log("Extracting user information from configuration:", JSON.stringify(config, null, 2));
 
   if (config.user && config.user.name && config.user.email) {
@@ -65,3 +65,5 @@ export function gitConfigUserGet(config) {
   }
   throw new Error("User information not configured in local repository config.");
 }
+
+export { gitConfigRead, gitConfigUserGet };

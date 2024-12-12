@@ -2,34 +2,33 @@ import fs from "fs";
 import path from "path";
 
 // Resolve a reference to its SHA-1 value
-export function refResolve(repo, ref) {
-  const refPath = path.join(repo.gitdir, ref);
-  //console.log(`Resolving reference: ${ref}, Path: ${refPath}`);
-
+function refResolve(repo, ref) {
+  const refPath = path.join(repo.gitdir, ref);  // Construct the full path to the reference
+ 
   try {
+    // Reference does not exist
     if (!fs.existsSync(refPath)) {
       console.error(`Reference path does not exist: ${refPath}`);
       return null;
     }
 
     const stat = fs.statSync(refPath);
+    // Path exists but is not a valid reference
     if (!stat.isFile()) {
       console.error(`Reference path is not a file: ${refPath}`);
       return null;
     }
 
     const data = fs.readFileSync(refPath, "utf8").trim();
-    //console.log(`Reference content: ${data}`);
+   
 
     if (data.startsWith("ref: ")) {
-      // Indirect reference
+     // Indirect reference points to another reference
       const targetRef = data.slice(5);
-     // console.log(`Reference ${ref} points to another ref: ${targetRef}`);
-      return refResolve(repo, targetRef);
-    } else {
-      // Direct reference
-    //  console.log(`Reference ${ref} resolved to SHA: ${data}`);
-      return data;
+     
+      return refResolve(repo, targetRef); // Recursively resolve the target reference
+    } else {   
+      return data; // Direct reference resolves to a SHA-1
     }
   } catch (error) {
     console.error(`Error resolving reference ${ref}: ${error.message}`);
@@ -38,12 +37,12 @@ export function refResolve(repo, ref) {
 }
 
 // List all references recursively and return as an object
-export function refList(repo, dir = "refs") {
+function refList(repo, dir = "refs") {
   const refDir = path.join(repo.gitdir, dir);
   const result = {};
 
   if (!fs.existsSync(refDir)) {
-    return result;
+    return result; // Return an empty object if the directory does not exist
   }
 
   const entries = fs.readdirSync(refDir).sort();
@@ -53,8 +52,10 @@ export function refList(repo, dir = "refs") {
     const entryName = path.join(dir, entry);
 
     if (fs.statSync(entryPath).isDirectory()) {
+      // If it's a directory, recurse into it
       result[entry] = refList(repo, entryName);
     } else {
+       // If it's a file, resolve its SHA-1
       result[entry] = refResolve(repo, entryName);
     }
   }
@@ -63,7 +64,7 @@ export function refList(repo, dir = "refs") {
 }
 
 // Display the references recursively
-export function showRef(repo, refs, prefix = "", withHash = true) {
+function showRef(repo, refs, prefix = "", withHash = true) {
   for (const [key, value] of Object.entries(refs)) {
     if (typeof value === "string") {
       // Direct reference
@@ -82,10 +83,12 @@ export function showRef(repo, refs, prefix = "", withHash = true) {
   }
 }
 
-// Create a reference
-export function refCreate(repo, refName, sha) {
+// Create a new reference pointing to a given SHA-1
+function refCreate(repo, refName, sha) {
   const refPath = path.join(repo.gitdir, "refs", refName);
 
   fs.mkdirSync(path.dirname(refPath), { recursive: true });
   fs.writeFileSync(refPath, sha + "\n", "utf8");
 }
+
+export {refResolve, refList, showRef, refCreate };

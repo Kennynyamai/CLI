@@ -1,42 +1,42 @@
 import { repoFind } from "../repository.js";
 import { refList, refCreate } from "../references.js";
-import { objectWrite, objectRead, GitTag } from "../objects.js";
-import { kvlmSerialize } from "../commits.js";
+import { objectWrite,  GitTag } from "../objects.js";
 
-// Create or list tags
+// Main function for handling tags: creates or lists tags based on arguments
 export function cmdTag(args) {
     const repo = repoFind();
 
     if (args.name) {
-        tagCreate(
+        tagCreate( // If a tag name is provided, create a tag
             repo,
             args.name,
-            args.object || "HEAD",
-            args.createTagObject
+            args.object || "HEAD",  // Default to HEAD if no object is specified
+            args.createTagObject // Determine if it's a lightweight or annotated tag
         );
     } else {
+        // If no name is provided, list all tags
         const refs = refList(repo);
         if (refs.tags) {
-            showTags(refs.tags);
+            showTags(refs.tags);  // Recursively display tags
         } else {
             console.log("No tags found.");
         }
     }
 }
 
-// Create a tag
+// Function to create a new tag
 function tagCreate(repo, name, ref, createTagObject = false) {
     const sha = objectFind(repo, ref);
 
     if (createTagObject) {
-        // Create a tag object
-        const tag = new GitTag();
+         // If an annotated tag is requested
+        const tag = new GitTag(); 
         tag.kvlm.set("object", sha);
-        tag.kvlm.set("type", "commit"); // Assuming tag points to a commit
+        tag.kvlm.set("type", "commit"); 
         tag.kvlm.set("tag", name);
         tag.kvlm.set(
             "tagger",
-            "YourName <you@example.com> " + Math.floor(Date.now() / 1000)
+            "YourName <you@example.com> " + Math.floor(Date.now() / 1000) // Simulate tagger info
         );
         tag.kvlm.set(
             null,
@@ -62,8 +62,3 @@ function showTags(tags) {
     }
 }
 
-// Resolve object references (placeholder for now)
-function objectFind(repo, ref) {
-    // For now, assume ref is a full SHA
-    return ref;
-}

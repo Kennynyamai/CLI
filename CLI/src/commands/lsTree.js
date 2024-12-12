@@ -1,12 +1,12 @@
 import path from "path";
-import { repoFind } from "../repository.js";
-import { objectRead, objectFind } from "../objects.js";
+import { repoFind } from "../core/repository.js";
+import { objectRead, objectFind } from "../core/objects.js";
 
 // Helper function to list tree contents
-export function lsTree(repo, ref, recursive = false, prefix = "") {
+function lsTree(repo, ref, recursive = false, prefix = "") {
   const sha = objectFind(repo, ref, "tree");
   const obj = objectRead(repo, sha);
-
+  // Iterate through the tree items
   for (const item of obj.items) {
     let type;
 
@@ -21,7 +21,7 @@ export function lsTree(repo, ref, recursive = false, prefix = "") {
       throw new Error(`Weird tree leaf mode: ${item.mode}`);
     }
 
-    // Print the tree item
+     // Print the item details
     if (!(recursive && type === "tree")) {
       console.log(
         `${item.mode.padStart(6, "0")} ${type} ${item.sha}\t${path.join(
@@ -30,14 +30,16 @@ export function lsTree(repo, ref, recursive = false, prefix = "") {
         )}`
       );
     } else {
-      // Recurse into subtree
+      // Recurse into sub-tree if `--recursive` is specified
       lsTree(repo, item.sha, recursive, path.join(prefix, item.path));
     }
   }
 }
 
 // Command bridge
-export function cmdLsTree(tree, options) {
+function cmdLsTree(tree, options) {
   const repo = repoFind();
   lsTree(repo, tree, options.recursive);
 }
+
+export { lsTree, cmdLsTree };

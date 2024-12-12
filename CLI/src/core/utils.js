@@ -2,12 +2,12 @@ import path from "path";
 import fs from "fs";
 
 // Compute a path under the repository's .git directory
-export function repoPath(repo, ...pathParts) {
+function repoPath(repo, ...pathParts) {
   return path.join(repo.gitdir, ...pathParts);
 }
 
 // Create a file path under the repository's .git directory
-export function repoFile(repo, ...pathParts) {
+function repoFile(repo, ...pathParts) {
   const filePath = repoPath(repo, ...pathParts);
   const dirPath = path.dirname(filePath);
 
@@ -18,7 +18,7 @@ export function repoFile(repo, ...pathParts) {
 }
 
 // Create a directory path under the repository's .git directory
-export function repoDir(repo, ...pathParts) {
+function repoDir(repo, ...pathParts) {
   const dirPath = repoPath(repo, ...pathParts);
 
   if (!fs.existsSync(dirPath)) {
@@ -27,3 +27,5 @@ export function repoDir(repo, ...pathParts) {
 
   return dirPath;
 }
+
+export { repoPath, repoFile, repoDir };

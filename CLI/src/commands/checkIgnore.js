@@ -1,12 +1,12 @@
-import { repoFind } from "../repository.js";
-import { indexRead } from "../index.js";
-import { objectRead } from "../objects.js";
-import chalk from 'chalk';
-import path from "path";
-import fs from "fs";
-import os from "os";
+import { repoFind } from "../core/repository.js";
+import { indexRead } from "../core/index.js";
+import { objectRead } from "../core/objects.js";
 import { minimatch } from "minimatch"; // Use `minimatch` for pattern matching
+import path from "path";
 
+
+
+// Class to store ignore rules
 class PalIgnore {
   constructor(absolute = [], scoped = {}) {
     this.absolute = absolute; // List of absolute ignore rules
@@ -14,7 +14,7 @@ class PalIgnore {
   }
 }
 
-// Parse a single .palignore pattern
+// Parse a single line from a `.palignore` file
 function palignoreParseLine(raw) {
   raw = raw.trim();
 
@@ -29,7 +29,7 @@ function palignoreParseLine(raw) {
   }
 }
 
-// Parse a list of lines into ignore rules
+// Parse multiple lines into a list of rules
 function palignoreParse(lines) {
   return lines.map(palignoreParseLine).filter((rule) => rule !== null); // Filter out null rules
 }
@@ -38,26 +38,26 @@ function palignoreParse(lines) {
 function palignoreRead(repo) {
   const result = new PalIgnore();
 
-  // Read .palignore files from the index
+  // Read the repository index to find `.palignore` file
   const index = indexRead(repo);
   for (const entry of index.entries) {
     if (entry.name === ".palignore" || entry.name.endsWith("/.palignore")) {
       const dirName = path.dirname(entry.name);
-      const contents = objectRead(repo, entry.sha).blobdata.toString("utf8");
+      const contents = objectRead(repo, entry.sha).blobdata.toString("utf8"); // Read `.palignore` contents
       result.scoped[dirName] = palignoreParse(contents.split("\n"));
     }
   }
 
- // console.log("Loaded scoped rules:", result.scoped);
+ 
 
-  return result;
+  return result; //all parsed rules
 }
 
-// Match a path against a set of rules
+// Match a file path against a list of rules
 function checkIgnore1(rules, filePath) {
   let result = null;
   for (const [pattern, value] of rules) {
-    //console.log(`Testing pattern: ${pattern} against path: ${filePath}`);
+   // Use `minimatch` to check if the pattern matches the file path
     if (minimatch(filePath, pattern)) {
       console.log(`Pattern matched: ${pattern}, value: ${value}`);
       result = value; // Last matching rule determines the result
@@ -66,26 +66,26 @@ function checkIgnore1(rules, filePath) {
   return result;
 }
 
-// Match against scoped rules
+// Match a file path against directory-specific (scoped) rules
 function checkIgnoreScoped(rules, filePath) {
   let currentDir = path.dirname(filePath);
-//  console.log(`Starting scoped check for: ${filePath}`);
+   // Traverse up the directory hierarchy
   while (currentDir !== path.resolve(currentDir, "..")) {
-  //  console.log(`Checking directory: ${currentDir}`);
+   
     if (rules[currentDir]) {
       const result = checkIgnore1(rules[currentDir], filePath);
       if (result !== null) {
-       // console.log(`Scoped match found in: ${currentDir}`);
-        return result;
+        
+        return result; // Return if a match is found
       }
     }
     currentDir = path.resolve(currentDir, "..");
   }
- // console.log("No scoped match found.");
-  return null;
+  
+  return null; // Return null if no match is found
 }
 
-// Match against absolute rules
+// Match a file path against global (absolute) rules
 function checkIgnoreAbsolute(rules, filePath) {
   for (const ruleSet of rules) {
     const result = checkIgnore1(ruleSet, filePath);
@@ -96,7 +96,7 @@ function checkIgnoreAbsolute(rules, filePath) {
   return false; // Default: not ignored
 }
 
-// Check if a path is ignored
+// Determine if a file path is ignored
 function checkIgnore(rules, filePath) {
   if (path.isAbsolute(filePath)) {
     throw new Error("Path must be relative to the repository's root.");
@@ -111,7 +111,7 @@ function checkIgnore(rules, filePath) {
 }
 
 // Command: check-ignore
-export function cmdCheckIgnore(paths) {
+function cmdCheckIgnore(paths) {
   const repo = repoFind();
   const rules = palignoreRead(repo);
 
@@ -130,4 +130,5 @@ export {
   checkIgnoreScoped,
   checkIgnoreAbsolute,
   checkIgnore,
+  cmdCheckIgnore,
 };

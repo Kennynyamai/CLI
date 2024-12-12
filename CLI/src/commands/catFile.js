@@ -1,14 +1,14 @@
-import { repoFind } from "../repository.js";
-import { objectRead, GitCommit, GitTree } from "../objects.js";
+import { repoFind } from "../core/repository.js";
+import { objectRead, GitTree } from "../core/objects.js";
 
 // Function to resolve object name (currently a placeholder)
-export function objectFind(repo, name, fmt = null, follow = true) {
+function objectFind(repo, name, fmt = null, follow = true) {
   // Extend this to resolve partial SHAs, branches, tags, etc.
   return name; // Placeholder for name resolution (full SHA only for now)
 }
 
 // Function to display the content of an object
-export function catFile(repo, sha, fmt = null) {
+function catFile(repo, sha, fmt = null) {
   console.log(`[catFile] Reading object with SHA: ${sha}`);
   const obj = objectRead(repo, sha);
 
@@ -35,7 +35,7 @@ export function catFile(repo, sha, fmt = null) {
 
 
 // Command bridge
-export function cmdCatFile(type, object) {
+function cmdCatFile(type, object) {
   try {
     const repo = repoFind();
     catFile(repo, object, type);
@@ -43,3 +43,5 @@ export function cmdCatFile(type, object) {
     console.error(`Error in cmdCatFile: ${error.message}`);
   }
 }
+
+export { objectFind, catFile, cmdCatFile};

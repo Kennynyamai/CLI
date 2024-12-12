@@ -1,27 +1,27 @@
 import fs from "fs";
 import path from "path";
-import { repoFind } from "../repository.js";
-import { objectRead, objectFind } from "../objects.js";
+import { repoFind } from "../core/repository.js";
+import { objectRead, objectFind } from "../core/objects.js";
 import chalk from 'chalk';
 
 // Recursive function to checkout a tree into a directory
 function treeCheckout(repo, tree, destPath) {
   for (const item of tree.items) {
     const obj = objectRead(repo, item.sha);
-    const destination = path.join(destPath, item.path);
+    const destination = path.join(destPath, item.path); // Determine the destination path
 
     if (obj.fmt === "tree") {
-      fs.mkdirSync(destination);
-      treeCheckout(repo, obj, destination);
+      fs.mkdirSync(destination); // Create directory for a tree object
+      treeCheckout(repo, obj, destination); // Recursively process the tree
     } else if (obj.fmt === "blob") {
-      fs.writeFileSync(destination, obj.blobdata);
+      fs.writeFileSync(destination, obj.blobdata); // Write blob (file) content to the destination
     }
-    // @TODO: Add support for symlinks (mode 12****)
+    
   }
 }
 
 // Command bridge for checkout
-export function cmdCheckout(commit, dir) {
+function cmdCheckout(commit, dir) {
   const repo = repoFind();
 
   try {
@@ -57,3 +57,5 @@ export function cmdCheckout(commit, dir) {
     throw err;
   }
 }
+
+export {cmdCheckout };
