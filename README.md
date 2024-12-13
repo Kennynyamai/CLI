@@ -3,12 +3,12 @@
 <details>
   <summary>Table of Contents</summary>
   <ol>
-    <li><a href="#Project Overview">Project Overview</a></li>
-    <li><a href="#System Architecture Design">System Architecture Design</a></li>
-    <li><a href="#Tour of The Codebase (Directory Tree)">Tour of The Codebase (Directory Tree)</a></li>
-    <li><a href="#Installation Guide">Installation Guide</a></li>
-    <li><a href="#Usage Manual">Usage Manual</a></li>
-    <li><a href="#Limitations and Future Improvementse">Limitations and Future Improvements</a></li>
+    <li><a href="#Project_Overview">Project Overview</a></li>
+    <li><a href="#System_Architecture_Design">System Architecture Design</a></li>
+    <li><a href="#Tour_of_The_Codebase (Directory_Tree)">Tour of The Codebase (Directory Tree)</a></li>
+    <li><a href="#Installation_Guide">Installation Guide</a></li>
+    <li><a href="#Usage_Manual">Usage Manual</a></li>
+    <li><a href="#Limitations_and_Future_Improvementse">Limitations and Future Improvements</a></li>
     <li><a href="#Resources">Resources</a></li>
     <li><a href="#contact">Contact</a></li>
     <li><a href="#License">License</a></li> 
@@ -137,7 +137,7 @@ CLI/
 
 
 ## Installation Guide
-_For more detailed explanation and usage manual guide, please refer to the [Documentation](https://example.com)_
+_For more detailed explanation and usage manual guide, please refer to the [Example Usage Walkthrough Documentation](CLI/pal_Example_Usage_Walkthrough - PDF.pdf)_
 
 
 Follow these steps to set up and use the Pal CLI tool on your machine, preferably on a system running Windows.
