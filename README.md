@@ -20,6 +20,7 @@ This project is a custom implementation of a distributed version control system 
 
 
 ## System Architecture Design
+<a id="System_Architecture_Design"></a>
 The project follows a moular and layered architecture to ensure scalabilty and maintainability. Each layer is responsible for a specific part of the system's functionality
 
 ### System Design Diagram
