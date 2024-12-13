@@ -5,7 +5,7 @@
   <ol>
     <li><a href="#Project_Overview">Project Overview</a></li>
     <li><a href="#System_Architecture_Design">System Architecture Design</a></li>
-    <li><a href="#Tour_of_The_Codebase (Directory_Tree)">Tour of The Codebase (Directory Tree)</a></li>
+    <li><a href="#Tour_of_The_Codebase_Directory_Tree">Tour of The Codebase (Directory Tree)</a></li>
     <li><a href="#Installation_Guide">Installation Guide</a></li>
     <li><a href="#Usage_Manual">Usage Manual</a></li>
     <li><a href="#Limitations_and_Future_Improvementse">Limitations and Future Improvements</a></li>
@@ -16,6 +16,7 @@
 </details>
 
 ## Project Overview
+<a id="Project_Overview"></a>
 This project is a custom implementation of a distributed version control system built in the style of `Git` but differentiated by using the `pal` keyword to avoid confusion with the standard Git software. While following a similar file structure and core principles, `pal` includes all essential version control functionalities. Users can initialize a directory, which creates a `.pal`  subdirectory directory to store repository metadata and internal objects. Core features include staging files, committing changes, viewing commit history, creating and switching between branches, performing diffs for conflict detection, merging branches, cloning repositories, and ignoring files using `.palignore`. The tool is packaged as an `npm` package, making it publicly available and easy to install and run locally as long as Node.js and npm are accessible. The system's modular design ensures maintainability, scalability, and ease of future enhancements. Comprehensive documentation is included, with a detailed example usage walkthrough provided in a linked PDF to help users understand the solution and its implementation.
 
 
@@ -95,6 +96,7 @@ The system operates through a series of layered interactions, with data flowing 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## Tour of The Codebase (Directory Tree)
+<a id="Tour_of_The_Codebase_Directory_Tree"></a>
 
 ```bash
 CLI/
@@ -138,6 +140,7 @@ CLI/
 
 
 ## Installation Guide
+<a id="Installation_Guide"></a>
 _For more detailed explanation and usage manual guide, please refer to the [Example Usage Walkthrough Documentation](CLI/pal_Example_Usage_Walkthrough - PDF.pdf)_
 
 
@@ -163,6 +166,7 @@ Verify the installation by checking the tool's version:
 pal --version
    ```
 ## Usage Manual
+<a id="Usage_Manual"></a>
 The Pal CLI tool provides various commands for managing a distributed version control system. Below is a step-by-step guide for using each command:
 
 ### 1.Initialize a Repository
@@ -298,6 +302,7 @@ pal check-ignore <file..>
 
 
   ## Limitations and Future Improvements
+  <a id="Limitations_and_Future_Improvementse"></a>
 While Pal DSCS is functional and provides the core control features, there are areas where the tool can be improved. Below is a list of current limitations, what the tool can and cannot do, and possible future enhancements:
 ### 1. Merge Commit Visibility
 * **Limitation**: The merge functionality creates a new merge commit during the process, but this commit does not appear in the commit history when using the `pal log` command.
