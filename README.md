@@ -141,7 +141,7 @@ CLI/
 
 ## Installation Guide
 <a id="Installation_Guide"></a>
-_For more detailed explanation and usage manual guide, please refer to the [Example Usage Walkthrough Documentation](https://github.com/Kennynyamai/Pal_Distributed_Source_Control_System/blob/master/CLI/pal_Example_Usage_Walkthrough%20-%20PDF.pdf)_
+_For more detailed explanation on the installation guide and usage manual, please refer to the [Example Usage Walkthrough Documentation](https://github.com/Kennynyamai/Pal_Distributed_Source_Control_System/blob/master/CLI/pal_Example_Usage_Walkthrough%20-%20PDF.pdf)_
 
 
 Follow these steps to set up and use the Pal CLI tool on your machine, preferably on a system running Windows.
